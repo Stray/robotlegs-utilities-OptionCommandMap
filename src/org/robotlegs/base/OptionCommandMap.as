@@ -22,7 +22,9 @@ package org.robotlegs.base
 		//import org.robotlegs.core.IOptionCommandMap;
 		public function mapToOption(optionNumber:uint, commandClass:Class):void
 		{
-			
+			var optionLookup:String = "OPTION_" + optionNumber.toString();
+			var optionType:String = OptionEvent[optionLookup];
+			mapEvent(optionType, commandClass, OptionEvent, true);
 		}
 
 		public function hasCommandForOption(optionNumber:uint):Boolean

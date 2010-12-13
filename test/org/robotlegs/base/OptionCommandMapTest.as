@@ -28,11 +28,12 @@ package org.robotlegs.base {
 	import org.robotlegs.core.IReflector;
 	import org.robotlegs.base.OptionEvent;
 
-	public class OptionCommandMapTest extends TestCase {
+	public class OptionCommandMapTest extends TestCase implements ICommandReporter {
 		private var optionCommandMap:OptionCommandMap;
         private var injector:IInjector;
 		private var eventDispatcher:EventDispatcher;
-
+		private var _reportedCommands:Array;
+		
 		public function OptionCommandMapTest(methodName:String=null) {
 			super(methodName)
 		}
@@ -46,9 +47,15 @@ package org.robotlegs.base {
 			IEventDispatcher(e.target).removeEventListener(Event.COMPLETE, prepareCompleteHandler);
 			super.run();
 		}
+        
+		public function reportCommand(commandClass:Class):void
+		{
+			_reportedCommands.push(commandClass);
+		}
 
 		override protected function setUp():void {
 			super.setUp();
+			_reportedCommands = [];
 			injector = new SwiftSuspendersInjector();
 			var reflector:IReflector = new SwiftSuspendersReflector();  
 			eventDispatcher = new EventDispatcher();
@@ -56,6 +63,7 @@ package org.robotlegs.base {
 			injector.mapValue(DisplayObjectContainer, new Sprite());
 			injector.mapValue(IMediatorMap, nice(IMediatorMap));
 			injector.mapValue(ICommandMap, nice(ICommandMap));
+			injector.mapValue(ICommandReporter, this);
 			injector.mapValue(IInjector, injector);
 			
 			optionCommandMap = new OptionCommandMap(eventDispatcher, injector, reflector);
@@ -79,18 +87,15 @@ package org.robotlegs.base {
 		}
 		
 		public function test_registering_one_command_against_one_option_the_command_fires_in_response_to_the_option_event():void {
-			optionCommandMap.mapToOption(1, SampleCommandA);
-			assertThrows(TracerBulletErrorA, function():void{ dispatchOption(1) }); 
+			optionCommandMap.mapToOption(1, SampleCommandA);                     
+			dispatchOption(1);
+			assertEqualsArraysIgnoringOrder("received the correct command", [SampleCommandA], _reportedCommands);
 		}
 		
 		public function test_registering_one_command_against_one_option_the_command_doesnt_fire_in_response_to_different_option_event():void {
 			optionCommandMap.mapToOption(1, SampleCommandA);
-			try {
-            	dispatchOption(2);
-			}
-			catch(error:Error) {
-				getResult().addFailure(this, new AssertionFailedError(error.message));
-			} 
+			dispatchOption(2);
+			assertEqualsArraysIgnoringOrder("received the correct command", [], _reportedCommands);
 		}
 		
 		public function test_one_command_does_not_fire_again_when_event_is_repeated():void {

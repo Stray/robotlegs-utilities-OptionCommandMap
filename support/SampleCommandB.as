@@ -1,11 +1,12 @@
 package {
 	                                 
 	import org.robotlegs.mvcs.Command;
+	import ICommandReporter;
 	
 	public class SampleCommandB extends Command {
 		
-		// Testable constants
-		//public static const MY_CONST:String = 'myConstant';
+		[Inject]
+		public var reporter:ICommandReporter;
 		
 		//--------------------------------------------------------------------------
 		//
@@ -26,7 +27,7 @@ package {
 		
 		override public function execute():void
 		{
-			throw(new TracerBulletErrorB());
+			reporter.reportCommand(SampleCommandB);
 		}
 		
 	}
