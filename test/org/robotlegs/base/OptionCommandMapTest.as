@@ -1,39 +1,96 @@
 package org.robotlegs.base {
 
+	import asunit.errors.AssertionFailedError;     
 	import asunit.framework.TestCase;
+	import flash.display.DisplayObjectContainer;
+	import flash.display.Sprite;
+	import flash.events.Event;
+	import flash.events.EventDispatcher;
+	import flash.events.IEventDispatcher;
+	import mockolate.errors.VerificationError;
+	import mockolate.nice;
+	import mockolate.prepare;
+	import mockolate.stub;
+   	import mockolate.verify;
+	import org.hamcrest.core.anything;
+	import org.hamcrest.core.not;
+	import org.hamcrest.object.equalTo;
+	import org.hamcrest.object.hasPropertyWithValue;
+	import org.hamcrest.object.nullValue;
+	import org.hamcrest.object.strictlyEqualTo;
+	import org.robotlegs.adapters.SwiftSuspendersInjector;
+	import org.robotlegs.adapters.SwiftSuspendersReflector;
 	import org.robotlegs.base.OptionCommandMap;
+	import org.robotlegs.core.ICommandMap;  
+	import org.robotlegs.core.IInjector;
+	import org.robotlegs.core.IMediatorMap;
+	import org.robotlegs.core.IOptionCommandMap;
+	import org.robotlegs.core.IReflector;
+	import org.robotlegs.base.OptionEvent;
 
 	public class OptionCommandMapTest extends TestCase {
-		private var instance:OptionCommandMap;
+		private var optionCommandMap:OptionCommandMap;
+        private var injector:IInjector;
+		private var eventDispatcher:EventDispatcher;
 
 		public function OptionCommandMapTest(methodName:String=null) {
 			super(methodName)
 		}
 
+		override public function run():void{
+			var mockolateMaker:IEventDispatcher = prepare(IMediatorMap, ICommandMap);
+			mockolateMaker.addEventListener(Event.COMPLETE, prepareCompleteHandler);
+		}
+
+		private function prepareCompleteHandler(e:Event):void{
+			IEventDispatcher(e.target).removeEventListener(Event.COMPLETE, prepareCompleteHandler);
+			super.run();
+		}
+
 		override protected function setUp():void {
 			super.setUp();
-			instance = new OptionCommandMap();
+			injector = new SwiftSuspendersInjector();
+			var reflector:IReflector = new SwiftSuspendersReflector();  
+			eventDispatcher = new EventDispatcher();
+			injector.mapValue(IEventDispatcher, eventDispatcher);
+			injector.mapValue(DisplayObjectContainer, new Sprite());
+			injector.mapValue(IMediatorMap, nice(IMediatorMap));
+			injector.mapValue(ICommandMap, nice(ICommandMap));
+			injector.mapValue(IInjector, injector);
+			
+			optionCommandMap = new OptionCommandMap(eventDispatcher, injector, reflector);
 		}
 
 		override protected function tearDown():void {
 			super.tearDown();
-			instance = null;
+			optionCommandMap = null;
 		}
 
 		public function testInstantiated():void {
-			assertTrue("instance is OptionCommandMap", instance is OptionCommandMap);
+			assertTrue("optionCommandMap is OptionCommandMap", optionCommandMap is OptionCommandMap);
 		}
-
+		
+		public function test_implements_IOptionCommandMap():void {
+			assertTrue("Implements IOptionCommandMap", optionCommandMap is IOptionCommandMap);
+		}
+		                                                                            
 		public function testFailure():void {
 			assertTrue("Failing test", true);
 		}
 		
 		public function test_registering_one_command_against_one_option_the_command_fires_in_response_to_the_option_event():void {
-			assertTrue("Registering one command against one option the command fires in response to the option event -> not implemented", false);
+			optionCommandMap.mapToOption(1, SampleCommandA);
+			assertThrows(TracerBulletErrorA, function():void{ dispatchOption(1) }); 
 		}
 		
 		public function test_registering_one_command_against_one_option_the_command_doesnt_fire_in_response_to_different_option_event():void {
-			assertTrue("Registering one command against one option the command doesnt fire in response to different option event -> not implemented", false);
+			optionCommandMap.mapToOption(1, SampleCommandA);
+			try {
+            	dispatchOption(2);
+			}
+			catch(error:Error) {
+				getResult().addFailure(this, new AssertionFailedError(error.message));
+			} 
 		}
 		
 		public function test_one_command_does_not_fire_again_when_event_is_repeated():void {
@@ -52,6 +109,16 @@ package org.robotlegs.base {
 			assertTrue("Unmapping all options commands not executed -> not implemented", false);
 		}
 		
+		public function test_hasCommandForOption_returns_true_after_wiring_and_before_firing_only():void {
+			assertTrue("HasCommandForOption returns true after wiring and before firing only -> not implemented", false);
+		}
+		
+		private function dispatchOption(optionID:uint):void
+		{
+			var optionLookup:String = "OPTION_" + optionID.toString();
+			var optionEvent:OptionEvent = new OptionEvent(OptionEvent[optionLookup]);
+			eventDispatcher.dispatchEvent(optionEvent);
+		}
 		
 	}
 }

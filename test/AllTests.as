@@ -8,11 +8,13 @@ package {
 
 	import asunit.framework.TestSuite;
 	import org.robotlegs.base.OptionCommandMapTest;
+	import org.robotlegs.base.OptionEventTest;
 
 	public class AllTests extends TestSuite {
 
 		public function AllTests() {
 			addTest(new org.robotlegs.base.OptionCommandMapTest());
+			addTest(new org.robotlegs.base.OptionEventTest());
 		}
 	}
 }

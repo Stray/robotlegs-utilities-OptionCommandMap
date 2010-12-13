@@ -26,7 +26,7 @@ project_model :model do |m|
   # m.asset_dir             = 'assets'
   m.compiler_gem_name     = 'sprout-flex4sdk-tool'
   m.compiler_gem_version  = '>= 4.0.0'
-  # m.source_path           << "#{m.lib_dir}/somelib"
+  m.source_path           << "support"
   m.source_path           << "#{m.lib_dir}/mockolate"  
   m.source_path           << "#{m.lib_dir}/robotlegs_v1_0"  
   m.library_path          << 'lib/asx.swc'
