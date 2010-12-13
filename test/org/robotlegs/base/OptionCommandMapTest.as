@@ -87,36 +87,70 @@ package org.robotlegs.base {
 		}
 		
 		public function test_registering_one_command_against_one_option_the_command_fires_in_response_to_the_option_event():void {
-			optionCommandMap.mapToOption(1, SampleCommandA);                     
+			optionCommandMap.mapOption(1, SampleCommandA);                     
 			dispatchOption(1);
 			assertEqualsArraysIgnoringOrder("received the correct command", [SampleCommandA], _reportedCommands);
 		}
 		
 		public function test_registering_one_command_against_one_option_the_command_doesnt_fire_in_response_to_different_option_event():void {
-			optionCommandMap.mapToOption(1, SampleCommandA);
+			optionCommandMap.mapOption(1, SampleCommandA);
 			dispatchOption(2);
-			assertEqualsArraysIgnoringOrder("received the correct command", [], _reportedCommands);
+			assertEqualsArraysIgnoringOrder("wrong commands not received", [], _reportedCommands);
 		}
 		
 		public function test_one_command_does_not_fire_again_when_event_is_repeated():void {
-			assertTrue("One command does not fire again when event is repeated -> not implemented", false);
+			optionCommandMap.mapOption(1, SampleCommandA);                     
+			dispatchOption(1);
+			assertEqualsArraysIgnoringOrder("received the correct command", [SampleCommandA], _reportedCommands);
+			_reportedCommands = [];
+			dispatchOption(1);
+			assertEqualsArraysIgnoringOrder("command not received twice", [], _reportedCommands);
 		}
 		
 		public function test_two_commands_registered_against_one_option_both_fire():void {
-			assertTrue("Two commands registered against one option both fire -> not implemented", false);
+			optionCommandMap.mapOption(1, SampleCommandA);                     
+			optionCommandMap.mapOption(1, SampleCommandB);                     
+			dispatchOption(1);
+			assertEqualsArraysIgnoringOrder("received the correct commands", [SampleCommandA, SampleCommandB], _reportedCommands);
 		}
 		
 		public function test_unused_options_are_unmapped_after_an_option_fires():void {
-			assertTrue("Unused options are unmapped after an option fires -> not implemented", false);
+			optionCommandMap.mapOption(1, SampleCommandA);                     
+			optionCommandMap.mapOption(2, SampleCommandB);                     
+			optionCommandMap.mapOption(3, SampleCommandC);                     
+			dispatchOption(1);
+			_reportedCommands = [];
+			dispatchOption(2);
+			dispatchOption(3);
+			assertEqualsArraysIgnoringOrder("commands not received for other options", [], _reportedCommands);
 		}
 		
 		public function test_unmapping_all_options_commands_not_executed():void {
-			assertTrue("Unmapping all options commands not executed -> not implemented", false);
+			optionCommandMap.mapOption(1, SampleCommandA);                     
+			optionCommandMap.mapOption(2, SampleCommandB);                     
+			optionCommandMap.mapOption(3, SampleCommandC);
+			optionCommandMap.unmapAllOptions();                     
+			dispatchOption(1);
+			dispatchOption(2);
+			dispatchOption(3);
+			assertEqualsArraysIgnoringOrder("commands not received for unmapped options", [], _reportedCommands);		
 		}
 		
 		public function test_hasCommandForOption_returns_true_after_wiring_and_before_firing_only():void {
-			assertTrue("HasCommandForOption returns true after wiring and before firing only -> not implemented", false);
+			assertFalse("before wiring, hasCommandForOption returns false", optionCommandMap.hasCommandForOption(2));
+			optionCommandMap.mapOption(2,SampleCommandB);
+			assertTrue("HasCommandForOption returns true after wiring and before firing", optionCommandMap.hasCommandForOption(2));
+			dispatchOption(2);
+			assertFalse("after firing, hasCommandForOption returns false", optionCommandMap.hasCommandForOption(2));
 		}
+		
+		public function test_optionTypeByNumber_returns_correct_values():void {
+			assertEquals("Returns correct value for 1", OptionEvent.OPTION_1, optionCommandMap.optionTypeByNumber(1));
+			assertEquals("Returns correct value for 10", OptionEvent.OPTION_10, optionCommandMap.optionTypeByNumber(10));
+			assertEquals("Returns correct value for 5", OptionEvent.OPTION_5, optionCommandMap.optionTypeByNumber(5));
+			assertEquals("Returns correct value for 17", OptionEvent.OPTION_17, optionCommandMap.optionTypeByNumber(17));
+		}
+		
 		
 		private function dispatchOption(optionID:uint):void
 		{

@@ -4,10 +4,12 @@ package org.robotlegs.core {
 
 	public interface IOptionCommandMap extends ICommandMap {
 
-		function mapToOption(optionNumber:uint, commandClass:Class):void;
+		function mapOption(optionNumber:uint, commandClass:Class):void;
 		
 		function hasCommandForOption(optionNumber:uint):Boolean;
 		
 		function unmapAllOptions():void;
+		
+		function optionTypeByNumber(optionNumber:uint):String;
 	}
 }
