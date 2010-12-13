@@ -37,7 +37,59 @@ then we need to also keep unmapping these events, as once an option has been sel
 
 The OptionCommandMap is intended to streamline this process and make the cleanup automatic, as well as simplifying the setup.
 
+**Usage**  
 
+Raw usage:
 
+    optionCommandMap.mapOption(1, DoSomethingCommand);
+	optionCommandMap.mapOption(2, DoSomethingElseCommand);
+  
+  
+**Usage in a more interesting use case**
 
+Imagine your game regularly presents the user with randomly selected dilemmas. The dilemmas have consequences, which are captured by commands (deduct some money, increase health, reduce probability of something else happening later etc).
+
+The dilemmas are many, and their configuration is determined elsewhere, such that you have a RandomDilemmaGenerator which simply fires a DilemmaGeneratedEvent with a DilemmaVO which contains a vo capturing the question, the option titles and the consequence command classes.
+
+The DilemmaGeneratedEvent is wired to a ConfigureDilemmaCommand, perhaps like this:
+
+	[Inject]
+	public var dilemmaEvent:DilemmaGeneratedEvent; 
+	
+	[Inject]
+	public var optionCommandMap:IOptionCommandMap;
+	
+	public override function execute():void
+	{
+		var dilemmaVO:DilemmaVO = dilemmaEvent.dilemmaVO;
+		var options:Vector.<DilemmaOptionVO> = dilemmaVO.options;
+		
+		var iLength:uint = options.length;
+		for(var i:int=0; i<iLength; i++)
+		{
+			var optionNumber:uint = options[i].id;
+			var optionConsequence:Class = options[i].consequenceCommandClass;
+			optionCommandMap.mapOption(optionNumber, optionConsequence);
+		}
+	}
+	
+Elsewhere, the same event is picked up by a view mediator
+
+	protected function dilemmaGeneratedHandler(e:DilemmaGeneratedEvent):void
+	{
+		// assumes the view send the option ID back when a decision is made by the user
+		view.dilemmaDecisionSignal.addOnce(decisionHandler);
+		// assumes a view that knows how to get the question and option button names from this vo
+		view.showDilemma(e.dilemmaVO);
+	}
+	
+	protected function decisionHandler(decisionID:uint):void
+	{
+		var optionChosen:String = "OPTION_" + decisionID.toString();
+		var evt:OptionEvent = new OptionEvent(OptionEvent[optionChosen]);
+		dispatch(evt);
+	}
+     
+
+And that's it. Your individual consequence Commands don't know or care about cleaning up the unneeded other Commands that applied to other options.
 
