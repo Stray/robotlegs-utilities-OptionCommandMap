@@ -92,4 +92,26 @@ Elsewhere, the same event is picked up by a view mediator
      
 
 And that's it. Your individual consequence Commands don't know or care about cleaning up the unneeded other Commands that applied to other options.
+                         
 
+**Incorporating OptionCommandMap into your robotlegs project** 
+
+You just need to instantiate and map it in your context - either early in startup, or by overriding the mapInjections context method:
+
+	override protected function mapInjections():void
+	{
+		super.mapInjections();
+		injector.mapValue(IOptionCommandMap, new OptionCommandMap(eventDispatcher, injector, reflector));
+	}
+	
+Then just inject against IOptionCommandMap in your other Commands.    
+                       
+
+**Compatibility with robotlegs versions**
+
+This util has been tested against robotlegs versions 1.0 and 1.4 - it should work for any. By simply including the 3 classes in the source of your project you can ensure it compiles against the same version of robotlegs that you're using.
+                                                                                                  
+
+**Wot no swc** 
+
+Truth is, I can't get the damn thing to build a swc without also pulling in the robotlegs classes it extends, which would break compatibility with other versions of robotlegs. If you are a swc wizard, please fork and build a swc and share it.
